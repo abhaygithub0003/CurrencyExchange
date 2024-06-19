@@ -1,0 +1,161 @@
+﻿@model CurrencyExchange.Models.CurrencyConversionModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Currency Converter</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <style>
+        body {
+            background: #f7f7f7;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .converter-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+        }
+
+        .converter-header {
+            margin-bottom: 20px;
+        }
+
+            .converter-header h2 {
+                font-weight: bold;
+                color: #333;
+            }
+
+        .form-group label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .btn-convert {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+        }
+
+            .btn-convert:hover {
+                background-color: #0056b3;
+            }
+
+        .error-message {
+            color: red;
+            font-size: 12px;
+        }
+
+        .result-message {
+            margin-top: 20px;
+        }
+
+            .result-message p {
+                font-size: 18px;
+                font-weight: bold;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="converter-container">
+                    <div class="converter-header text-center">
+                        <h2>Currency Converter</h2>
+                    </div>
+                    <form id="currency-form">
+                        <div class="form-group">
+                            <label>Amount</label>
+                            <input id="Amount" name="Amount" class="form-control" placeholder="Enter amount" type="number" min="1" />
+                            <div id="AmountError" class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>From Currency</label>
+                            <select id="FromCurrency" name="FromCurrency" class="form-control">
+                                @foreach (var currency in CurrencyExchange.Models.CurrencyConversionModel.CurrencyCountryMap)
+                                {
+                                    <option value="@currency.Key">@currency.Key - @currency.Value</option>
+                                }
+                            </select>
+                            <div id="FromCurrencyError" class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>To Currency</label>
+                            <select id="ToCurrency" name="ToCurrency" class="form-control">
+                                @foreach (var currency in CurrencyExchange.Models.CurrencyConversionModel.CurrencyCountryMap)
+                                {
+                                    <option value="@currency.Key">@currency.Key - @currency.Value</option>
+                                }
+                            </select>
+                            <div id="ToCurrencyError" class="error-message"></div>
+                        </div>
+                        <div class="text-center">
+                            <button type="button" class="btn btn-convert" onclick="validateAndConvert()">Convert</button>
+                        </div>
+                    </form>
+                    <div id="result" class="result-message text-center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function validateAndConvert() {
+            var isValid = true;
+
+            var amount = $('#Amount').val();
+            var fromCurrency = $('#FromCurrency').val();
+            var toCurrency = $('#ToCurrency').val();
+
+            if (!amount) {
+                $('#AmountError').text('Please enter an amount.');
+                isValid = false;
+            } else {
+                $('#AmountError').text('');
+            }
+
+            if (!fromCurrency) {
+                $('#FromCurrencyError').text('Please select a from currency.');
+                isValid = false;
+            } else {
+                $('#FromCurrencyError').text('');
+            }
+
+            if (!toCurrency) {
+                $('#ToCurrencyError').text('Please select a to currency.');
+                isValid = false;
+            } else {
+                $('#ToCurrencyError').text('');
+            }
+
+            if (!isValid) {
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("Index", "CurrencyConverter")',
+                type: 'POST',
+                data: {
+                    Amount: amount,
+                    FromCurrency: fromCurrency,
+                    ToCurrency: toCurrency
+                },
+                success: function (data) {
+                    if (data.result) {
+                        $('#result').html('<p class="text-success">Converted Amount: ' + data.result + '</p>');
+                    } else {
+                        $('#result').html('<p class="text-danger">Error occurred during conversion.</p>');
+                    }
+                },
+                error: function () {
+                    $('#result').html('<p class="text-danger">Error occurred during conversion.</p>');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
